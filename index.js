@@ -18,7 +18,16 @@ import aiRouter from './routes/ai.js';
 await connectDB();
 
 const app = express();
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:8080', credentials: true }));
+// Support multiple origins: set CORS_ORIGIN to comma-separated list, e.g. "http://localhost:8080,https://tripssync.vercel.app"
+const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:8080';
+const allowedOrigins = corsOrigin.split(',').map((o) => o.trim()).filter(Boolean);
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.includes(origin)) cb(null, origin || allowedOrigins[0]);
+    else cb(null, false);
+  },
+  credentials: true,
+}));
 app.use(express.json());
 
 app.use('/api/profiles', profilesRouter);
